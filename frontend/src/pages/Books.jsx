@@ -7,7 +7,6 @@ const Books = () => {
     const [error, setError] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
 
-    // Kitapları yükle
     useEffect(() => {
         fetchBooks();
     }, []);
@@ -24,7 +23,6 @@ const Books = () => {
         }
     };
 
-    // Arama
     const handleSearch = async (e) => {
         e.preventDefault();
         if (!searchQuery.trim()) {
@@ -43,103 +41,116 @@ const Books = () => {
         }
     };
 
-    if (loading) {
-        return (
-            <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            </div>
-        );
-    }
-
     return (
-        <div className="container mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold mb-8">📚 Kitaplar</h1>
+        <div className="min-h-screen bg-base-200">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-primary to-secondary text-primary-content py-12">
+                <div className="container mx-auto px-4">
+                    <h1 className="text-4xl font-bold mb-2">📚 Kitap Koleksiyonu</h1>
+                    <p className="opacity-80 mb-6">{books.length} kitap bulundu</p>
 
-            {/* Search Bar */}
-            <form onSubmit={handleSearch} className="mb-8">
-                <div className="flex gap-2">
-                    <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Kitap veya yazar ara..."
-                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                    />
-                    <button
-                        type="submit"
-                        className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
-                    >
-                        Ara
-                    </button>
-                    {searchQuery && (
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setSearchQuery('');
-                                fetchBooks();
-                            }}
-                            className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600"
-                        >
-                            Temizle
+                    {/* Search */}
+                    <form onSubmit={handleSearch} className="join w-full max-w-xl">
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Kitap veya yazar ara..."
+                            className="input input-bordered join-item flex-1"
+                        />
+                        <button type="submit" className="btn btn-accent join-item">
+                            🔍 Ara
                         </button>
-                    )}
+                        {searchQuery && (
+                            <button
+                                type="button"
+                                onClick={() => { setSearchQuery(''); fetchBooks(); }}
+                                className="btn btn-ghost join-item"
+                            >
+                                ✕
+                            </button>
+                        )}
+                    </form>
                 </div>
-            </form>
+            </div>
 
-            {error && (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                    {error}
-                </div>
-            )}
+            {/* Content */}
+            <div className="container mx-auto px-4 py-8">
+                {error && (
+                    <div className="alert alert-error mb-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>{error}</span>
+                    </div>
+                )}
 
-            {/* Book Grid */}
-            {books.length === 0 ? (
-                <div className="text-center text-gray-500 py-8">
-                    Kitap bulunamadı
-                </div>
-            ) : (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {books.map((book) => (
-                        <div key={book.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-                            <div className="p-6">
-                                <h2 className="text-xl font-semibold mb-2">{book.title}</h2>
-
-                                <p className="text-gray-600 mb-2">
-                                    <span className="font-medium">Yazar:</span> {book.author?.name || 'Bilinmiyor'}
+                {loading ? (
+                    <div className="flex justify-center items-center h-64">
+                        <span className="loading loading-spinner loading-lg text-primary"></span>
+                    </div>
+                ) : books.length === 0 ? (
+                    <div className="hero min-h-[40vh]">
+                        <div className="hero-content text-center">
+                            <div>
+                                <div className="text-6xl mb-4">📭</div>
+                                <h3 className="text-2xl font-bold">Kitap bulunamadı</h3>
+                                <p className="text-base-content/60 mt-2">
+                                    {searchQuery ? 'Farklı bir arama terimi deneyin' : 'Henüz kitap eklenmemiş'}
                                 </p>
-
-                                <p className="text-gray-600 mb-2">
-                                    <span className="font-medium">ISBN:</span> {book.isbn}
-                                </p>
-
-                                {book.publishedYear && (
-                                    <p className="text-gray-600 mb-2">
-                                        <span className="font-medium">Yıl:</span> {book.publishedYear}
-                                    </p>
-                                )}
-
-                                {/* Categories */}
-                                <div className="flex flex-wrap gap-2 mt-3">
-                                    {book.categories?.map((category) => (
-                                        <span
-                                            key={category.id}
-                                            className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded"
-                                        >
-                      {category.name}
-                    </span>
-                                    ))}
-                                </div>
-
-                                {book.description && (
-                                    <p className="text-gray-500 text-sm mt-3 line-clamp-2">
-                                        {book.description}
-                                    </p>
-                                )}
                             </div>
                         </div>
-                    ))}
-                </div>
-            )}
+                    </div>
+                ) : (
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        {books.map((book, index) => (
+                            <div key={book.id} className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+                                {/* Book Cover */}
+                                <figure className={`h-48 bg-gradient-to-br ${
+                                    ['from-blue-500 to-blue-600', 'from-purple-500 to-purple-600', 'from-green-500 to-green-600',
+                                        'from-orange-500 to-orange-600', 'from-pink-500 to-pink-600', 'from-cyan-500 to-cyan-600'][index % 6]
+                                }`}>
+                                    <span className="text-6xl text-white/80">📖</span>
+                                </figure>
+
+                                <div className="card-body">
+                                    <h2 className="card-title text-lg line-clamp-2">{book.title}</h2>
+
+                                    <div className="flex items-center gap-2 text-base-content/70">
+                                        <span>✍️</span>
+                                        <span>{book.author?.name || 'Bilinmiyor'}</span>
+                                    </div>
+
+                                    <div className="text-xs text-base-content/50">
+                                        ISBN: {book.isbn}
+                                        {book.publishedYear && ` • ${book.publishedYear}`}
+                                    </div>
+
+                                    {/* Categories */}
+                                    <div className="card-actions justify-start mt-2">
+                                        {book.categories?.slice(0, 3).map((cat) => (
+                                            <div key={cat.id} className="badge badge-outline badge-sm">
+                                                {cat.name}
+                                            </div>
+                                        ))}
+                                        {book.categories?.length > 3 && (
+                                            <div className="badge badge-ghost badge-sm">
+                                                +{book.categories.length - 3}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {book.description && (
+                                        <p className="text-sm text-base-content/60 mt-2 line-clamp-2">
+                                            {book.description}
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
         </div>
     );
 };

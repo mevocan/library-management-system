@@ -6,11 +6,8 @@ const BookList = () => {
     const [books, setBooks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
 
-    useEffect(() => {
-        fetchBooks();
-    }, []);
+    useEffect(() => { fetchBooks(); }, []);
 
     const fetchBooks = async () => {
         try {
@@ -18,136 +15,108 @@ const BookList = () => {
             const response = await booksAPI.getAll();
             setBooks(response.data);
         } catch (err) {
-            setError('Kitaplar yüklenirken hata oluştu');
+            setError('Yüklenemedi');
         } finally {
             setLoading(false);
         }
     };
 
     const handleDelete = async (id, title) => {
-        if (!window.confirm(`"${title}" kitabını silmek istediğinize emin misiniz?`)) {
-            return;
-        }
-
+        if (!window.confirm(`"${title}" silinsin mi?`)) return;
         try {
             await booksAPI.delete(id);
-            setSuccess('Kitap başarıyla silindi');
             fetchBooks();
         } catch (err) {
-            setError(err.response?.data?.message || 'Silme işlemi başarısız');
+            setError('Silinemedi');
         }
     };
 
     return (
-        <div className="container mx-auto px-4 py-8">
-            <div className="flex justify-between items-center mb-8">
-                <h1 className="text-3xl font-bold">📋 Kitap Listesi</h1>
-                <Link
-                    to="/admin/books/new"
-                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                >
-                    + Yeni Kitap Ekle
-                </Link>
+        <div className="min-h-screen bg-base-200">
+            <div className="bg-gradient-to-r from-primary to-blue-600 text-primary-content py-8">
+                <div className="container mx-auto px-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        <h1 className="text-3xl font-bold">📚 Kitap Listesi</h1>
+                        <p className="opacity-80">{books.length} kitap</p>
+                    </div>
+                    <Link to="/admin/books/new" className="btn btn-accent">
+                        + Yeni Kitap
+                    </Link>
+                </div>
             </div>
 
-            {error && (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                    {error}
-                </div>
-            )}
+            <div className="container mx-auto px-4 py-8">
+                {error && <div className="alert alert-error mb-6">{error}</div>}
 
-            {success && (
-                <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                    {success}
-                </div>
-            )}
-
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                <table className="min-w-full">
-                    <thead className="bg-gray-50">
-                    <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            ID
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Başlık
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Yazar
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Kategoriler
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Yıl
-                        </th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            İşlemler
-                        </th>
-                    </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                    {loading ? (
-                        <tr>
-                            <td colSpan="6" className="px-6 py-4 text-center">
-                                Yükleniyor...
-                            </td>
-                        </tr>
-                    ) : books.length === 0 ? (
-                        <tr>
-                            <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
-                                Henüz kitap eklenmemiş
-                            </td>
-                        </tr>
-                    ) : (
-                        books.map((book) => (
-                            <tr key={book.id} className="hover:bg-gray-50">
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {book.id}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm font-medium text-gray-900">
-                                        {book.title}
-                                    </div>
-                                    <div className="text-sm text-gray-500">{book.isbn}</div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                    {book.author?.name || '-'}
-                                </td>
-                                <td className="px-6 py-4">
-                                    <div className="flex flex-wrap gap-1">
-                                        {book.categories?.map((cat) => (
-                                            <span
-                                                key={cat.id}
-                                                className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded"
-                                            >
-                          {cat.name}
-                        </span>
-                                        ))}
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {book.publishedYear || '-'}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <Link
-                                        to={`/admin/books/edit/${book.id}`}
-                                        className="text-blue-600 hover:text-blue-900 mr-3"
-                                    >
-                                        Düzenle
-                                    </Link>
-                                    <button
-                                        onClick={() => handleDelete(book.id, book.title)}
-                                        className="text-red-600 hover:text-red-900"
-                                    >
-                                        Sil
-                                    </button>
-                                </td>
-                            </tr>
-                        ))
-                    )}
-                    </tbody>
-                </table>
+                {loading ? (
+                    <div className="flex justify-center py-12">
+                        <span className="loading loading-spinner loading-lg text-primary"></span>
+                    </div>
+                ) : books.length === 0 ? (
+                    <div className="card bg-base-100 shadow-xl">
+                        <div className="card-body items-center text-center py-12">
+                            <div className="text-6xl mb-4">📭</div>
+                            <h3 className="text-xl font-bold">Kitap yok</h3>
+                            <p className="text-base-content/60">İlk kitabınızı ekleyin</p>
+                            <Link to="/admin/books/new" className="btn btn-primary mt-4">
+                                + Kitap Ekle
+                            </Link>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="card bg-base-100 shadow-xl">
+                        <div className="overflow-x-auto">
+                            <table className="table">
+                                <thead>
+                                <tr>
+                                    <th>Kitap</th>
+                                    <th>Yazar</th>
+                                    <th>Kategoriler</th>
+                                    <th>Yıl</th>
+                                    <th></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {books.map((book) => (
+                                    <tr key={book.id} className="hover">
+                                        <td>
+                                            <div className="flex items-center gap-3">
+                                                <div className="avatar placeholder">
+                                                    <div className="bg-primary text-primary-content rounded-lg w-12">
+                                                        <span className="text-xl">📖</span>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <div className="font-bold">{book.title}</div>
+                                                    <div className="text-xs opacity-50">{book.isbn}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>{book.author?.name || '-'}</td>
+                                        <td>
+                                            <div className="flex flex-wrap gap-1">
+                                                {book.categories?.slice(0, 2).map((cat) => (
+                                                    <span key={cat.id} className="badge badge-outline badge-sm">{cat.name}</span>
+                                                ))}
+                                                {book.categories?.length > 2 && (
+                                                    <span className="badge badge-ghost badge-sm">+{book.categories.length - 2}</span>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td>{book.publishedYear || '-'}</td>
+                                        <td>
+                                            <div className="flex gap-1">
+                                                <Link to={`/admin/books/edit/${book.id}`} className="btn btn-ghost btn-sm">✏️</Link>
+                                                <button onClick={() => handleDelete(book.id, book.title)} className="btn btn-ghost btn-sm text-error">🗑️</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
