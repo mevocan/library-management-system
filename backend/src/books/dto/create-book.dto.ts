@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsNumber, IsArray } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsNumber, IsArray, IsUrl } from 'class-validator';
 
 export class CreateBookDto {
     @IsNotEmpty()
@@ -13,6 +13,14 @@ export class CreateBookDto {
     @IsOptional()
     @IsNumber()
     publishedYear?: number;
+
+    @IsOptional()
+    @IsUrl()
+    coverImage?: string;
+
+    @IsOptional()
+    @IsNumber()
+    totalCopies?: number;
 
     @IsNumber()
     authorId: number;

@@ -7,9 +7,12 @@ import {
     ManyToMany,
     JoinTable,
     JoinColumn,
+    OneToMany,
 } from 'typeorm';
 import { Author } from '../authors/author.entity';
 import { Category } from '../categories/category.entity';
+import { Favorite } from '../favorites/favorite.entity';
+import { Borrowing } from '../borrowings/borrowing.entity';
 
 @Entity('books')
 export class Book {
@@ -28,10 +31,18 @@ export class Book {
     @Column({ nullable: true })
     publishedYear: number;
 
+    // 📸 Kapak Fotoğrafı URL'i
+    @Column({ nullable: true })
+    coverImage: string;
+
+    // 📚 Toplam kopya sayısı
+    @Column({ default: 1 })
+    totalCopies: number;
+
     @CreateDateColumn()
     createdAt: Date;
 
-    // N Kitap → 1 Yazar
+    // Yazar ilişkisi
     @ManyToOne(() => Author, (author) => author.books, { eager: true })
     @JoinColumn({ name: 'authorId' })
     author: Author;
@@ -39,12 +50,20 @@ export class Book {
     @Column()
     authorId: number;
 
-    // N Kitap ↔ N Kategori (Bu taraf "sahibi" - JoinTable burada)
+    // Kategori ilişkisi
     @ManyToMany(() => Category, (category) => category.books, { eager: true })
     @JoinTable({
-        name: 'book_categories', // Ara tablo adı
+        name: 'book_categories',
         joinColumn: { name: 'bookId', referencedColumnName: 'id' },
         inverseJoinColumn: { name: 'categoryId', referencedColumnName: 'id' },
     })
     categories: Category[];
+
+    // Favoriler ilişkisi
+    @OneToMany(() => Favorite, (favorite) => favorite.book)
+    favorites: Favorite[];
+
+    // Ödünç alma ilişkisi
+    @OneToMany(() => Borrowing, (borrowing) => borrowing.book)
+    borrowings: Borrowing[];
 }

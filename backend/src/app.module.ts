@@ -6,12 +6,15 @@ import { AuthorsModule } from './authors/authors.module';
 import { CategoriesModule } from './categories/categories.module';
 import { BooksModule } from './books/books.module';
 import { AuthModule } from './auth/auth.module';
+import { FavoritesModule } from './favorites/favorites.module';
+import { BorrowingsModule } from './borrowings/borrowings.module';
+import { ReadBooksModule } from './read-books/read-books.module';
+import { WantToReadModule } from './want-to-read/want-to-read.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
+    ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -31,8 +34,11 @@ import { AuthModule } from './auth/auth.module';
     CategoriesModule,
     BooksModule,
     AuthModule,
+    FavoritesModule,
+    BorrowingsModule,
+    ReadBooksModule,
+    WantToReadModule,
+    NotificationsModule,
   ],
-  controllers: [],
-  providers: [],
 })
 export class AppModule {}

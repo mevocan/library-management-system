@@ -1,26 +1,33 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { booksAPI, authorsAPI, categoriesAPI } from '../../services/api';
+import { booksAPI, authorsAPI, categoriesAPI, borrowingsAPI } from '../../services/api';
 
 const Dashboard = () => {
-    const [stats, setStats] = useState({ books: 0, authors: 0, categories: 0 });
+    const [stats, setStats] = useState({ books: 0, authors: 0, categories: 0, borrowings: 0 });
     const [recentBooks, setRecentBooks] = useState([]);
+    const [pendingBorrowings, setPendingBorrowings] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [booksRes, authorsRes, categoriesRes] = await Promise.all([
+                const [booksRes, authorsRes, categoriesRes, borrowingsRes] = await Promise.all([
                     booksAPI.getAll(),
                     authorsAPI.getAll(),
                     categoriesAPI.getAll(),
+                    borrowingsAPI.getAll().catch(() => ({ data: [] })),
                 ]);
+
+                const pending = borrowingsRes.data.filter(b => b.status === 'pending');
+
                 setStats({
                     books: booksRes.data.length,
                     authors: authorsRes.data.length,
                     categories: categoriesRes.data.length,
+                    borrowings: pending.length,
                 });
                 setRecentBooks(booksRes.data.slice(-5).reverse());
+                setPendingBorrowings(pending.slice(0, 5));
             } catch (error) {
                 console.error('Veriler yüklenemedi:', error);
             } finally {
@@ -83,6 +90,17 @@ const Dashboard = () => {
                             <Link to="/admin/categories" className="link link-accent">Tümünü gör →</Link>
                         </div>
                     </div>
+
+                    <div className="stat">
+                        <div className="stat-figure text-warning">
+                            <span className="text-3xl">📅</span>
+                        </div>
+                        <div className="stat-title">Bekleyen Talepler</div>
+                        <div className="stat-value text-warning">{stats.borrowings}</div>
+                        <div className="stat-desc">
+                            <Link to="/admin/borrowings" className="link link-warning">Yönet →</Link>
+                        </div>
+                    </div>
                 </div>
 
                 <div className="grid lg:grid-cols-3 gap-8">
@@ -100,6 +118,12 @@ const Dashboard = () => {
                                 <Link to="/admin/categories" className="btn btn-accent btn-block justify-start gap-2">
                                     <span>🏷️</span> Kategori Yönetimi
                                 </Link>
+                                <Link to="/admin/borrowings" className="btn btn-warning btn-block justify-start gap-2">
+                                    <span>📅</span> Ödünç Talepleri
+                                    {stats.borrowings > 0 && (
+                                        <span className="badge badge-error">{stats.borrowings}</span>
+                                    )}
+                                </Link>
                                 <Link to="/admin/books" className="btn btn-neutral btn-block justify-start gap-2">
                                     <span>📋</span> Kitap Listesi
                                 </Link>
@@ -107,56 +131,45 @@ const Dashboard = () => {
                         </div>
                     </div>
 
-                    {/* Recent Books */}
+                    {/* Pending Borrowings */}
                     <div className="lg:col-span-2 card bg-base-100 shadow-xl">
                         <div className="card-body">
                             <div className="flex justify-between items-center">
-                                <h2 className="card-title">📖 Son Eklenen Kitaplar</h2>
-                                <Link to="/admin/books" className="btn btn-ghost btn-sm">
+                                <h2 className="card-title">⏳ Bekleyen Ödünç Talepleri</h2>
+                                <Link to="/admin/borrowings" className="btn btn-ghost btn-sm">
                                     Tümü →
                                 </Link>
                             </div>
 
-                            {recentBooks.length === 0 ? (
+                            {pendingBorrowings.length === 0 ? (
                                 <div className="text-center py-8 text-base-content/60">
-                                    <div className="text-4xl mb-2">📭</div>
-                                    <p>Henüz kitap eklenmemiş</p>
+                                    <div className="text-4xl mb-2">✅</div>
+                                    <p>Bekleyen talep yok</p>
                                 </div>
                             ) : (
                                 <div className="overflow-x-auto">
                                     <table className="table">
                                         <thead>
                                         <tr>
+                                            <th>Kullanıcı</th>
                                             <th>Kitap</th>
-                                            <th>Yazar</th>
-                                            <th>Kategoriler</th>
+                                            <th>Tarihler</th>
+                                            <th>İşlem</th>
                                         </tr>
                                         </thead>
                                         <tbody>
-                                        {recentBooks.map((book) => (
-                                            <tr key={book.id} className="hover">
-                                                <td>
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="avatar placeholder">
-                                                            <div className="bg-primary text-primary-content rounded-lg w-10">
-                                                                <span>📖</span>
-                                                            </div>
-                                                        </div>
-                                                        <div>
-                                                            <div className="font-bold">{book.title}</div>
-                                                            <div className="text-xs opacity-50">{book.isbn}</div>
-                                                        </div>
-                                                    </div>
+                                        {pendingBorrowings.map((b) => (
+                                            <tr key={b.id}>
+                                                <td>{b.user?.name}</td>
+                                                <td>{b.book?.title}</td>
+                                                <td className="text-xs">
+                                                    {new Date(b.startDate).toLocaleDateString('tr-TR')} -
+                                                    {new Date(b.endDate).toLocaleDateString('tr-TR')}
                                                 </td>
-                                                <td>{book.author?.name || '-'}</td>
                                                 <td>
-                                                    <div className="flex flex-wrap gap-1">
-                                                        {book.categories?.slice(0, 2).map((cat) => (
-                                                            <span key={cat.id} className="badge badge-sm badge-outline">
-                                  {cat.name}
-                                </span>
-                                                        ))}
-                                                    </div>
+                                                    <Link to="/admin/borrowings" className="btn btn-xs btn-primary">
+                                                        İncele
+                                                    </Link>
                                                 </td>
                                             </tr>
                                         ))}
@@ -165,6 +178,66 @@ const Dashboard = () => {
                                 </div>
                             )}
                         </div>
+                    </div>
+                </div>
+
+                {/* Recent Books */}
+                <div className="card bg-base-100 shadow-xl mt-8">
+                    <div className="card-body">
+                        <div className="flex justify-between items-center">
+                            <h2 className="card-title">📖 Son Eklenen Kitaplar</h2>
+                            <Link to="/admin/books" className="btn btn-ghost btn-sm">
+                                Tümü →
+                            </Link>
+                        </div>
+
+                        {recentBooks.length === 0 ? (
+                            <div className="text-center py-8 text-base-content/60">
+                                <div className="text-4xl mb-2">📭</div>
+                                <p>Henüz kitap eklenmemiş</p>
+                            </div>
+                        ) : (
+                            <div className="overflow-x-auto">
+                                <table className="table">
+                                    <thead>
+                                    <tr>
+                                        <th>Kitap</th>
+                                        <th>Yazar</th>
+                                        <th>Kategoriler</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {recentBooks.map((book) => (
+                                        <tr key={book.id} className="hover">
+                                            <td>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="avatar placeholder">
+                                                        <div className="bg-primary text-primary-content rounded-lg w-10">
+                                                            <span>📖</span>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <div className="font-bold">{book.title}</div>
+                                                        <div className="text-xs opacity-50">{book.isbn}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>{book.author?.name || '-'}</td>
+                                            <td>
+                                                <div className="flex flex-wrap gap-1">
+                                                    {book.categories?.slice(0, 2).map((cat) => (
+                                                        <span key={cat.id} className="badge badge-sm badge-outline">
+                                {cat.name}
+                              </span>
+                                                    ))}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

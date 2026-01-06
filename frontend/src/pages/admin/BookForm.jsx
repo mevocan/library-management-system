@@ -8,7 +8,14 @@ const BookForm = () => {
     const isEditing = Boolean(id);
 
     const [formData, setFormData] = useState({
-        title: '', isbn: '', description: '', publishedYear: '', authorId: '', categoryIds: [],
+        title: '',
+        isbn: '',
+        description: '',
+        publishedYear: '',
+        coverImage: '',      // YENİ
+        totalCopies: 1,      // YENİ
+        authorId: '',
+        categoryIds: [],
     });
     const [authors, setAuthors] = useState([]);
     const [categories, setCategories] = useState([]);
@@ -142,6 +149,36 @@ const BookForm = () => {
                                         className="input input-bordered"
                                         placeholder="Suç ve Ceza"
                                         required
+                                    />
+                                </div>
+                                {/* Kapak URL */}
+                                <div className="form-control">
+                                    <label className="label">
+                                        <span className="label-text font-semibold">Kapak Fotoğrafı URL</span>
+                                    </label>
+                                    <input
+                                        type="url"
+                                        name="coverImage"
+                                        value={formData.coverImage}
+                                        onChange={handleChange}
+                                        className="input input-bordered"
+                                        placeholder="https://example.com/cover.jpg"
+                                    />
+                                </div>
+
+                                {/* Kopya Sayısı */}
+                                <div className="form-control">
+                                    <label className="label">
+                                        <span className="label-text font-semibold">Kopya Sayısı</span>
+                                    </label>
+                                    <input
+                                        type="number"
+                                        name="totalCopies"
+                                        value={formData.totalCopies}
+                                        onChange={handleChange}
+                                        className="input input-bordered"
+                                        min="1"
+                                        placeholder="1"
                                     />
                                 </div>
 
