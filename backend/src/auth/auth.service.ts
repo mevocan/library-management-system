@@ -2,6 +2,8 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcryptjs';
+import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
@@ -19,8 +21,10 @@ export class AuthService {
     return null;
   }
 
-  async login(email: string, password: string) {
+  async login(loginDto: LoginDto) {
+    const { email, password } = loginDto;
     const user = await this.validateUser(email, password);
+    
     if (!user) {
       throw new UnauthorizedException('Email veya şifre hatalı');
     }
@@ -38,7 +42,8 @@ export class AuthService {
     };
   }
 
-  async register(name: string, email: string, password: string) {
+  async register(registerDto: RegisterDto) {
+    const { name, email, password } = registerDto;
     const user = await this.usersService.create({ name, email, password });
     const { password: _, ...result } = user;
     
