@@ -15,20 +15,30 @@ import { NotificationsModule } from './notifications/notifications.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get('DB_HOST'),
-        port: configService.get<number>('DB_PORT'),
-        username: configService.get('DB_USERNAME'),
-        password: configService.get('DB_PASSWORD'),
-        database: configService.get('DB_NAME'),
-        entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: true,
-      }),
-    }),
+    TypeOrmModule.forRoot(
+      process.env.DATABASE_URL
+        ? {
+            // Production - Render
+            type: 'postgres',
+            url: process.env.DATABASE_URL,
+            entities: [__dirname + '/**/*.entity{.ts,.js}'],
+            synchronize: true,
+            ssl: {
+              rejectUnauthorized: false,
+            },
+          }
+        : {
+            // Development - Local
+            type: 'postgres',
+            host: process.env.DB_HOST || 'localhost',
+            port: 5432,
+            username: process.env.DB_USERNAME || 'postgres',
+            password: process.env.DB_PASSWORD || 'postgres',
+            database: process.env.DB_NAME || 'library_db',
+            entities: [__dirname + '/**/*.entity{.ts,.js}'],
+            synchronize: true,
+          }
+    ),
     UsersModule,
     AuthorsModule,
     CategoriesModule,
