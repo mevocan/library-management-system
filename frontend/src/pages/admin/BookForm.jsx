@@ -41,6 +41,8 @@ const BookForm = () => {
                         isbn: book.isbn,
                         description: book.description || '',
                         publishedYear: book.publishedYear || '',
+                        coverImage: book.coverImage || '',
+                        totalCopies: book.totalCopies || 1,
                         authorId: book.author?.id || '',
                         categoryIds: book.categories?.map((c) => c.id) || [],
                     });
@@ -55,7 +57,12 @@ const BookForm = () => {
     }, [id, isEditing]);
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        let newValue = value;
+        if (name === 'totalCopies') {
+            newValue = value ? parseInt(value) || '' : '';
+        }
+        setFormData({ ...formData, [name]: newValue });
     };
 
     const handleCategoryChange = (catId) => {
@@ -78,6 +85,7 @@ const BookForm = () => {
             const bookData = {
                 ...formData,
                 publishedYear: formData.publishedYear ? parseInt(formData.publishedYear) : null,
+                totalCopies: formData.totalCopies ? parseInt(formData.totalCopies) : 1,
                 authorId: parseInt(formData.authorId),
                 categoryIds: formData.categoryIds.map((i) => parseInt(i)),
             };
